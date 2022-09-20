@@ -15,9 +15,20 @@ class imputers:
     
     def mean_imputation(self):
         start = time.time()
-        end = time.time()
+        sums = {}
+        sum_val = {}
+        count = 0
+        for col in self.df:
+            #vectorize for performance reasons
+            sums[col] = self.df[col].to_numpy()
+            sums[col] = [np.nan if item == '?' else item for item in sums[col]]
+            sums[col] = [float(item) for item in sums[col]]
+            sum_val[col] = np.nansum(sums[col])
+            
 
-        self.mean_time = (end - start) * 1000
+        end = time.time()
+        self.mean_time = (end - start)  * 1000
+        print(self.mean_time)
         pass
 
     def hot_deck_imputation(self):
@@ -32,4 +43,9 @@ class imputers:
     def inspect(self):
         pass
 
+def main():
+    imp = imputers('dataset_missing01.csv')
+    imp.mean_imputation()
 
+if __name__ == '__main__':
+    main()
