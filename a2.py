@@ -7,10 +7,12 @@ class imputers:
     def __init__(self, filename):
         self.fname = filename
         self.df = pd.read_csv(self.fname)
+        self.complete_df = pd.read_csv('dataset_complete.csv')
         self.mean_time = 0.0
         self.hot_time = 0.0
 
-    def mae(self):
+    def mae(self,locations, values):
+        #extract locations of imputed values and compare
         pass
     
     def mean_imputation(self):
@@ -38,8 +40,8 @@ class imputers:
         self.df = pd.DataFrame(sums)
 
         end = time.time()
-        self.mean_time = (end - start)  * 1000
-        print(f"Run time in ms {self.mean_time} to impute {self.filename}")
+        self.mean_time = (end - start) * 1000
+        print(f"Run time in ms {self.mean_time} to impute {self.fname}")
         pass
 
     def hot_deck_imputation(self):
