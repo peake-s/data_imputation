@@ -17,18 +17,25 @@ class imputers:
         start = time.time()
         sums = {}
         sum_val = {}
-        count = 0
         for col in self.df:
             #vectorize for performance reasons
             sums[col] = self.df[col].to_numpy()
             sums[col] = [np.nan if item == '?' else item for item in sums[col]]
             sums[col] = [float(item) for item in sums[col]]
             sum_val[col] = np.nansum(sums[col])
-            
+        count = 0
+        for key,vals in sums.items():
+            #loop over dicitonary 
+            print(vals)
+            for val in vals:
+                if val == np.nan:
+                    sums[key][val] = sum_val[key]
+                    print(val)
 
+        print(sums['COMP_K'][1045])
         end = time.time()
         self.mean_time = (end - start)  * 1000
-        print(self.mean_time)
+        print(f"Run time in ms {self.mean_time}")
         pass
 
     def hot_deck_imputation(self):
