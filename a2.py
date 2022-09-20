@@ -17,25 +17,29 @@ class imputers:
         start = time.time()
         sums = {}
         sum_val = {}
+        col_len = self.df.shape[0]
+        nan_count = 0
         for col in self.df:
             #vectorize for performance reasons
             sums[col] = self.df[col].to_numpy()
-            sums[col] = [np.nan if item == '?' else item for item in sums[col]]
+            #replace ? with nan. Probably a better way to do this as in not doing it at all
+            sums[col] = [np.nan and nan_count + 1 if item == '?' else item for item in sums[col]]
             sums[col] = [float(item) for item in sums[col]]
-            sum_val[col] = np.nansum(sums[col])
-        count = 0
+            sum_val[col] = np.nansum(sums[col])/(col_len-nan_count)
+        
         for key,vals in sums.items():
             #loop over dicitonary 
-            print(vals)
-            for val in vals:
-                if val == np.nan:
-                    sums[key][val] = sum_val[key]
+            #replace nan values with the mean
+            for (idx,val) in enumerate(vals):
+                if np.isnan(val):
+                    sums[key][idx] = sum_val[key]
                     print(val)
 
-        print(sums['COMP_K'][1045])
+        self.df = pd.DataFrame(sums)
+
         end = time.time()
         self.mean_time = (end - start)  * 1000
-        print(f"Run time in ms {self.mean_time}")
+        print(f"Run time in ms {self.mean_time} to impute {self.filename}")
         pass
 
     def hot_deck_imputation(self):
@@ -51,7 +55,7 @@ class imputers:
         pass
 
 def main():
-    imp = imputers('dataset_missing01.csv')
+    imp = imputers('dataset_missing10.csv')
     imp.mean_imputation()
 
 if __name__ == '__main__':
