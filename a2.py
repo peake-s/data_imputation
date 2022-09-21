@@ -8,26 +8,45 @@ class imputers:
         self.fname = filename
         self.df = pd.read_csv(self.fname)
         self.complete_df = pd.read_csv('dataset_complete.csv')
-        self.mean_time = 0.0
-        self.hot_time = 0.0
+        self.run_time = 0.0
+        self.num_imputed = 0
+        self.mae = 0.0
 
-    def mae(self,locations, values):
+    def _mae_calc(self,locations):
         #extract locations of imputed values and compare
-        pass
+        for col in self.complete_df:
+            for idx in locations:
+                #loop over the array of locations
+                self.mae += abs(self.df[col][idx] - self.complete_df[col][idx]) 
+        
+        self.mae = self.mae/self.num_imputed
+        
     
-    def mean_imputation(self):
+    def _missing_count(self,data_vecs):
+        count = 0
+        for (idx,item) in enumerate(data_vecs):
+            if item == '?':
+                data_vecs[idx] = np.nan
+                count += 1
+
+            data_vecs[idx] = float(data_vecs[idx])
+
+        return (count, data_vecs)
+
+    def _mean_imputation(self):
         start = time.time()
         sums = {}
         sum_val = {}
         col_len = self.df.shape[0]
         nan_count = 0
+        locations = []
+        #self.df.replace('?',np.nan)
         for col in self.df:
             #vectorize for performance reasons
             sums[col] = self.df[col].to_numpy()
-            #replace ? with nan. Probably a better way to do this as in not doing it at all
-            sums[col] = [np.nan and nan_count + 1 if item == '?' else item for item in sums[col]]
-            sums[col] = [float(item) for item in sums[col]]
-            sum_val[col] = np.nansum(sums[col])/(col_len-nan_count)
+            nan_count,sums[col] = self._missing_count(sums[col])
+            self.num_imputed+=nan_count
+            sum_val[col] = round((np.nansum(sums[col])/(col_len-nan_count)),5)
         
         for key,vals in sums.items():
             #loop over dicitonary 
@@ -35,30 +54,40 @@ class imputers:
             for (idx,val) in enumerate(vals):
                 if np.isnan(val):
                     sums[key][idx] = sum_val[key]
-                    print(val)
+                    locations.append(idx)
+
 
         self.df = pd.DataFrame(sums)
 
         end = time.time()
-        self.mean_time = (end - start) * 1000
-        print(f"Run time in ms {self.mean_time} to impute {self.fname}")
-        pass
+        
+        self.run_time = (end - start) * 1000
+        
+        return locations
+        
 
-    def hot_deck_imputation(self):
-        pass
-
-    def print_results(self):
+    def _hot_deck_imputation(self):
         pass
 
     def sv(self, filename): 
-        pass   
+        self.df.to_csv(filename)
 
-    def inspect(self):
-        pass
+    def impute(self, type = None, missing = '0'):
+        if type == "mean":
+            locs = self._mean_imputation()
+            self._mae_calc(locs)
+            print(f"MAE_{missing}_{type} = {self.mae:.4f}")
+            print(f"Runtime_{missing}_{type} = {self.run_time}")
+        else:
+            locs = self._hot_deck_imputation()
+            self._mae_calc(locs)
+            print(f"MAE_{missing}_{type} = {self.mae:.4f}")
+            print(f"Runtime_{missing}_{type} = {self.run_time}")
 
 def main():
-    imp = imputers('dataset_missing10.csv')
-    imp.mean_imputation()
+    imp = imputers('dataset_missing01.csv')
+    imp.impute(type = 'mean',missing = '01')
+
 
 if __name__ == '__main__':
     main()
