@@ -19,7 +19,7 @@ class imputers:
                 #loop over the array of locations
                 self.mae += abs(self.df[col][idx] - self.complete_df[col][idx]) 
         
-        self.mae = self.mae/self.num_imputed
+        self.mae = round((self.mae/self.num_imputed),4)
         
     
     def _missing_count(self,data_vecs):
@@ -65,28 +65,53 @@ class imputers:
         
         return locations
         
+    def _find_missing(self,df):
+        for col in df:
+            for val in df[col]:
+                if val == '?': 
+                    pass
 
-    def _hot_deck_imputation(self):
+
+    def _manhattan_distance(self):
         pass
 
+    def _hot_deck_imputation(self):
+        #vectorize for speed
+        df_vec = self.df.to_numpy()
+        #map with object as keys and distances as values
+        obj_dist = {}
+        #mark objects with missing features
+        #stores col,row
+        missing_rows = {}
+        #self._find_missing(df_vec)
+        
+        #for missing objects compute manhattan distances and store in map
+        #find minimum distance values and replace the object
+
     def sv(self, filename): 
-        self.df.to_csv(filename)
+        self.df.to_csv(filename,index=False)
 
     def impute(self, type = None, missing = '0'):
         if type == "mean":
             locs = self._mean_imputation()
             self._mae_calc(locs)
-            print(f"MAE_{missing}_{type} = {self.mae:.4f}")
+            print(f"MAE_{missing}_{type} = {self.mae}")
             print(f"Runtime_{missing}_{type} = {self.run_time}")
         else:
             locs = self._hot_deck_imputation()
             self._mae_calc(locs)
-            print(f"MAE_{missing}_{type} = {self.mae:.4f}")
+            print(f"MAE_{missing}_{type} = {self.mae}")
             print(f"Runtime_{missing}_{type} = {self.run_time}")
+        
+        fname = f"V00907458_missing{missing}_imputed_{type}.csv"
+        self.sv(fname)
 
 def main():
-    imp = imputers('dataset_missing01.csv')
-    imp.impute(type = 'mean',missing = '01')
+    imp_mean_01 = imputers('dataset_missing01.csv')
+    imp_mean_01.impute(type = 'mean',missing = '01')
+    imp_mean_10 = imputers('dataset_missing10.csv')
+    imp_mean_10.impute(type = 'mean',missing = '10')
+    imp_hd_01 = imputers('dataset_missing01.csv')
 
 
 if __name__ == '__main__':
