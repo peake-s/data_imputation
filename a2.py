@@ -71,22 +71,50 @@ class imputers:
                 if val == '?': 
                     pass
 
+    def _to_vec(self):
+        df_vec = self.df.to_numpy()
+        #for col in self.df:
+        #    df_vec[col] = self.df[col].to_numpy()
+        return df_vec
 
-    def _manhattan_distance(self):
-        pass
+    def _manhattan_distance(self,row, idx):
+        #compare values across all objects
+        distances = np.empty(shape = self.df.shape[1])
+        temp = 0
+        #loop over all rows except for the one passed in
+
+
+        return min(distances)
 
     def _hot_deck_imputation(self):
+        locations = []
         #vectorize for speed
-        df_vec = self.df.to_numpy()
+        df_vec = self._to_vec()
+        #df_vec ={}
         #map with object as keys and distances as values
         obj_dist = {}
         #mark objects with missing features
         #stores col,row
         missing_rows = {}
+        #col,row
+        print(np.shape(df_vec)[0])
         #self._find_missing(df_vec)
+        it = np.nditer(df_vec,flags = ['multi_index'], op_flags = ['readwrite'])
+        for idx in it:
+            if val == '?':
+                closest
+        '''
+        for col in df_vec:
+            #df_vec[col] = self.df[col].to_numpy()
+            for (idx,val) in enumerate(col):
+                if val == '?':
+                    closest = self._manhattan_distance(df_vec,idx)
+                    #def minimize the results                    
+                    self.df[col][idx] = closest
+                    locations.append(idx)
+        '''
         
-        #for missing objects compute manhattan distances and store in map
-        #find minimum distance values and replace the object
+        return locations
 
     def sv(self, filename): 
         self.df.to_csv(filename,index=False)
@@ -112,7 +140,7 @@ def main():
     imp_mean_10 = imputers('dataset_missing10.csv')
     imp_mean_10.impute(type = 'mean',missing = '10')
     imp_hd_01 = imputers('dataset_missing01.csv')
-
+    imp_hd_01.impute(type = 'hd',missing = '01')
 
 if __name__ == '__main__':
     main()
