@@ -123,6 +123,7 @@ class imputers:
         locations,missing_rows,indexes = self._find_missing()
         #iterate over rows
         #print(locations[0])
+        count = 0
         for (idx,row) in enumerate(self.df_vec):
             
             if idx in missing_rows:
@@ -133,8 +134,14 @@ class imputers:
                     #loop thru idx of row with missing vals
                     te = self.df_vec[closest_row_idx][j]
                     #print(f"{idx},{j} te: {te}")
+                    if count == 1:
+                        break
+                    print(val)
+                    count += 1
+
                     if cp[idx][j] == '?':
                         print(f"te in {te}")
+                        print(cp[idx][j])
                         print(self.df_vec[closest_row_idx][j])
                         self.df_vec[idx][j] = self.df_vec[closest_row_idx][j]
             
