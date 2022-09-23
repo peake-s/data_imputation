@@ -11,6 +11,7 @@ class imputers:
         self.run_time = 0.0
         self.num_imputed = 0
         self.mae = 0.0
+        self.df_vec = []
 
     def _mae_calc(self,locations):
         #extract locations of imputed values and compare
@@ -65,17 +66,17 @@ class imputers:
         
         return locations
         
-    def _find_missing(self,df):
+    def _find_missing(self):
         missing = []
         missing_rows = []
-        for (idx,col) in enumerate(df):
+        for (idx,col) in enumerate(self.df_vec):
             for (i,val) in enumerate(col):
-                print(f"val {val} idx {idx} i {i}")
                 if val == '?':
-                    self.df[i][idx] = 1.0
-                    self.df[i][idx] = float(val) 
-                    missing.append(idx,i)
+                    self.df_vec[idx][i] = 1.0 
+                    missing.append((idx,i))
                     missing_rows.append(i)
+                self.df_vec[idx][i] = float(self.df_vec[idx][i])
+
         return (missing, missing_rows)
 
     def _to_vec(self):
@@ -100,54 +101,23 @@ class imputers:
     def _hot_deck_imputation(self):
         start = time.time()
         #indexes of the missing values
-        df_vec = self._to_vec()
-        locations,missing_rows = self._find_missing(df_vec)
+        self.df_vec = self._to_vec()
+        locations,missing_rows = self._find_missing()
         
         
         #iterate over rows
-        for (idx,row) in enumerate(df_vec):
+        for (idx,row) in enumerate(self.df_vec):
             if idx in missing_rows:
-                df_vec[idx] = self._manhattan_distance(row, idx,df_vec)
+                self.df_vec[idx] = self._manhattan_distance(row, idx,self.df_vec)
 
-        cols = self.df.head()
-        self.df = pd.DataFrame(df_vec,columns=cols)
+        x = list(self.df)
+        self.df = pd.DataFrame(self.df_vec,columns=x)
 
-        self.run_time = (end - start) * 1000
-        
         end = time.time()
+        self.run_time = (end - start) * 1000
+        print(self.run_time)
         return locations
-    '''
-    def _hot_deck_imputation(self):
-        locations = []
-        #vectorize for speed
-        df_vec = self._to_vec()
-        #df_vec ={}
-        #map with object as keys and distances as values
-        obj_dist = {}
-        #mark objects with missing features
-        #stores col,row
-        missing_rows = {}
-        #col,row
-        print(np.shape(df_vec)[0])
-        #self._find_missing(df_vec)
-        #iterators over all objects(rows)
-        it = np.nditer(df_vec,flags = ['multi_index'], op_flags = ['readwrite'])
-        for idx in it:
-            if val == '?':
-                closest
-        
-        for col in df_vec:
-            #df_vec[col] = self.df[col].to_numpy()
-            for (idx,val) in enumerate(col):
-                if val == '?':
-                    closest = self._manhattan_distance(df_vec,idx)
-                    #def minimize the results                    
-                    self.df[col][idx] = closest
-                    locations.append(idx)
-        
-        
-        return locations
-    '''
+ 
     def sv(self, filename): 
         self.df.to_csv(filename,index=False)
 
@@ -167,10 +137,10 @@ class imputers:
         self.sv(fname)
 
 def main():
-    imp_mean_01 = imputers('dataset_missing01.csv')
-    imp_mean_01.impute(type = 'mean',missing = '01')
-    imp_mean_10 = imputers('dataset_missing10.csv')
-    imp_mean_10.impute(type = 'mean',missing = '10')
+    #imp_mean_01 = imputers('dataset_missing01.csv')
+    #imp_mean_01.impute(type = 'mean',missing = '01')
+    #imp_mean_10 = imputers('dataset_missing10.csv')
+    #imp_mean_10.impute(type = 'mean',missing = '10')
     imp_hd_01 = imputers('dataset_missing01.csv')
     imp_hd_01.impute(type = 'hd',missing = '01')
 
