@@ -66,10 +66,17 @@ class imputers:
         return locations
         
     def _find_missing(self,df):
-        for col in df:
-            for val in df[col]:
-                if val == '?': 
-                    pass
+        missing = []
+        missing_rows = []
+        for (idx,col) in enumerate(df):
+            for (i,val) in enumerate(col):
+                print(f"val {val} idx {idx} i {i}")
+                if val == '?':
+                    self.df[i][idx] = 1.0
+                    self.df[i][idx] = float(val) 
+                    missing.append(idx,i)
+                    missing_rows.append(i)
+        return (missing, missing_rows)
 
     def _to_vec(self):
         df_vec = self.df.to_numpy()
@@ -77,15 +84,39 @@ class imputers:
         #    df_vec[col] = self.df[col].to_numpy()
         return df_vec
 
-    def _manhattan_distance(self,row, idx):
+    def _manhattan_distance(self,r, idx,dfvec):
         #compare values across all objects
-        distances = np.empty(shape = self.df.shape[1])
-        temp = 0
+        distances = []
+        
         #loop over all rows except for the one passed in
-
+        for (i,row) in enumerate(dfvec):
+            if i == idx:
+                next
+            distance = sum(abs(np.subtract(row,r)))
+            distances.append(distance)
 
         return min(distances)
 
+    def _hot_deck_imputation(self):
+        start = time.time()
+        #indexes of the missing values
+        df_vec = self._to_vec()
+        locations,missing_rows = self._find_missing(df_vec)
+        
+        
+        #iterate over rows
+        for (idx,row) in enumerate(df_vec):
+            if idx in missing_rows:
+                df_vec[idx] = self._manhattan_distance(row, idx,df_vec)
+
+        cols = self.df.head()
+        self.df = pd.DataFrame(df_vec,columns=cols)
+
+        self.run_time = (end - start) * 1000
+        
+        end = time.time()
+        return locations
+    '''
     def _hot_deck_imputation(self):
         locations = []
         #vectorize for speed
@@ -99,11 +130,12 @@ class imputers:
         #col,row
         print(np.shape(df_vec)[0])
         #self._find_missing(df_vec)
+        #iterators over all objects(rows)
         it = np.nditer(df_vec,flags = ['multi_index'], op_flags = ['readwrite'])
         for idx in it:
             if val == '?':
                 closest
-        '''
+        
         for col in df_vec:
             #df_vec[col] = self.df[col].to_numpy()
             for (idx,val) in enumerate(col):
@@ -112,10 +144,10 @@ class imputers:
                     #def minimize the results                    
                     self.df[col][idx] = closest
                     locations.append(idx)
-        '''
+        
         
         return locations
-
+    '''
     def sv(self, filename): 
         self.df.to_csv(filename,index=False)
 
