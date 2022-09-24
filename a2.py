@@ -89,12 +89,10 @@ class imputers:
 
     def _to_vec(self):
         df_vec = self.df.to_numpy()
-        #for col in self.df:
-        #    df_vec[col] = self.df[col].to_numpy()
         return df_vec
 
     def _manhattan_distance(self,r, idx,dfvec):
-        #compare values across all objects]
+        #compare values across all objects
         current = 1000
         #row to get values from
         loc = 0
@@ -102,47 +100,22 @@ class imputers:
         for (i,row) in enumerate(dfvec):
             if i == idx:
                 continue
-            if i == idx:
-                print("why ere")
             distance = sum(abs(np.subtract(row,r)))
 
             if distance < current:
                 current = distance
                 loc = i
-                #print(loc)
-    
-        #val to replace is the lowest sum (closest row) 
-        #print(loc)
+        #returns the closest row
         return loc
 
     def _hot_deck_imputation(self):
         start = time.time()
         #indexes of the missing values
         self.df_vec = self._to_vec()
-        cp = self.df_vec
-        locations,missing_rows,indexes = self._find_missing()
-        #iterate over rows
-        #print(locations[0])
-        for (idx,row) in enumerate(self.df_vec):
-            
-            if idx in missing_rows:
-                closest_row_idx = self._manhattan_distance(row, idx,self.df_vec)
-                #print(f"cri {closest_row_idx} {df_vec[idx]})
-                for (j,val) in enumerate(self.df_vec[idx]):
-                    #print(f"cri {closest_row_idx} current row: {idx} cri val {self.df_vec[closest_row_idx][j]}")
-                    #loop thru idx of row with missing vals
-                    te = self.df_vec[closest_row_idx][j]
-                    #print(f"{idx},{j} te: {te}")
-                    if cp[idx][j] == '?':
-                        print(f"te in {te}")
-                        print(self.df_vec[closest_row_idx][j])
-                        self.df_vec[idx][j] = self.df_vec[closest_row_idx][j]
-            
-
-
-        #For missing row find values that are closest
-        #for (idx,r) in enumerate(missing_rows):
-        #    distances.append(self._manhattan_distance(self.df_vec[idx], idx,locations[0][idx],self.df_vec))
+        _,missing_rows,indexes = self._find_missing()
+        for (i,row) in enumerate(missing_rows):
+            closest_row_idx = self._manhattan_distance(self.df_vec[row],row,self.df_vec)
+            self.df_vec[row][indexes[i]] = self.df_vec[closest_row_idx][indexes[i]]
 
         x = list(self.df)
         self.df = pd.DataFrame(self.df_vec,columns=x)
@@ -171,10 +144,10 @@ class imputers:
         self.sv(fname)
 
 def main():
-    #imp_mean_01 = imputers('dataset_missing01.csv')
-    #imp_mean_01.impute(type = 'mean',missing = '01')
-    #imp_mean_10 = imputers('dataset_missing10.csv')
-    #imp_mean_10.impute(type = 'mean',missing = '10')
+    imp_mean_01 = imputers('dataset_missing01.csv')
+    imp_mean_01.impute(type = 'mean',missing = '01')
+    imp_mean_10 = imputers('dataset_missing10.csv')
+    imp_mean_10.impute(type = 'mean',missing = '10')
     imp_hd_01 = imputers('dataset_missing01.csv')
     imp_hd_01.impute(type = 'hd',missing = '01')
     imp_hd_10 = imputers('dataset_missing10.csv')
