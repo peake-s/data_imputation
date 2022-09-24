@@ -89,12 +89,10 @@ class imputers:
 
     def _to_vec(self):
         df_vec = self.df.to_numpy()
-        #for col in self.df:
-        #    df_vec[col] = self.df[col].to_numpy()
         return df_vec
 
     def _manhattan_distance(self,r, idx,dfvec):
-        #compare values across all objects]
+        #compare values across all objects
         current = 1000
         #row to get values from
         loc = 0
@@ -114,7 +112,7 @@ class imputers:
         start = time.time()
         #indexes of the missing values
         self.df_vec = self._to_vec()
-        locations,missing_rows,indexes = self._find_missing()
+        _,missing_rows,indexes = self._find_missing()
         for (i,row) in enumerate(missing_rows):
             closest_row_idx = self._manhattan_distance(self.df_vec[row],row,self.df_vec)
             self.df_vec[row][indexes[i]] = self.df_vec[closest_row_idx][indexes[i]]
@@ -146,14 +144,14 @@ class imputers:
         self.sv(fname)
 
 def main():
-    #imp_mean_01 = imputers('dataset_missing01.csv')
-    #imp_mean_01.impute(type = 'mean',missing = '01')
-    #imp_mean_10 = imputers('dataset_missing10.csv')
-    #imp_mean_10.impute(type = 'mean',missing = '10')
+    imp_mean_01 = imputers('dataset_missing01.csv')
+    imp_mean_01.impute(type = 'mean',missing = '01')
+    imp_mean_10 = imputers('dataset_missing10.csv')
+    imp_mean_10.impute(type = 'mean',missing = '10')
     imp_hd_01 = imputers('dataset_missing01.csv')
     imp_hd_01.impute(type = 'hd',missing = '01')
-    #imp_hd_10 = imputers('dataset_missing10.csv')
-    #imp_hd_10.impute(type = 'hd',missing = '10')
+    imp_hd_10 = imputers('dataset_missing10.csv')
+    imp_hd_10.impute(type = 'hd',missing = '10')
 
 if __name__ == '__main__':
     main()
