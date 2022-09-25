@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import time
 
-from pytools import P
-
 class imputers:
     
     def __init__(self, filename):
@@ -76,37 +74,64 @@ class imputers:
         for (idx,col) in enumerate(self.df_vec):
             for (i,val) in enumerate(col):
                 if val == '?':
-                    self.df_vec[idx][i] = 1.0 
+                    self.df_vec[idx][i] = np.nan 
                     missing_pos.append((idx,i))
                     missing_rows.append(idx)
                     self.num_imputed += 1
                     indexes.append(i)
 
                 self.df_vec[idx][i] = float(self.df_vec[idx][i])
-                
-        #print(missing_pos[0])
+
         return (missing_pos, missing_rows,indexes)
 
     def _to_vec(self):
         df_vec = self.df.to_numpy()
         return df_vec
 
-    def _manhattan_distance(self,r, idx,dfvec):
+    def _distance(self,row_test,row_comp):
+        distance = 0.0
+        for i,val in enumerate(row_comp):
+
+            if np.isnan(row_comp[i]) or np.isnan(row_test[i]):
+                distance += 1.0
+            else:
+                distance += abs(row_comp[i]-row_test[i])
+        return distance
+            
+
+    def _manhattan_distance(self,r, idx,dfvec, mr,idxs):
         #compare values across all objects
         current = 1000
+        current1 = 10000
         #row to get values from
-        loc = 0
+        loc1 = 0
+        loc2 =0
+        distance = 0.0
+        x =0
         #loop over all rows except the one passed in
         for (i,row) in enumerate(dfvec):
             if i == idx:
                 continue
-            distance = sum(abs(np.subtract(row,r)))
+            x = np.where(row == np.nan)
+            
+            if len(x) > 0:
+                distance = self._distance(r,row)
+            else:
+                distance = sum(abs(np.subtract(row,r)))
 
-            if distance < current:
+            if distance < current and i == 0:
                 current = distance
-                loc = i
-        #returns the closest row
-        return loc
+                current1 = distance + 0.5
+                loc1 = i
+                loc2 = i + 1
+            elif distance < current:
+                loc1 = i
+                current = distance
+            elif distance > current and distance < current1:
+                current1 = distance
+                loc2 = i
+
+        return (loc1,loc2)
 
     def _hot_deck_imputation(self):
         start = time.time()
@@ -114,8 +139,12 @@ class imputers:
         self.df_vec = self._to_vec()
         _,missing_rows,indexes = self._find_missing()
         for (i,row) in enumerate(missing_rows):
-            closest_row_idx = self._manhattan_distance(self.df_vec[row],row,self.df_vec)
-            self.df_vec[row][indexes[i]] = self.df_vec[closest_row_idx][indexes[i]]
+            closest_row_idx1, cri2 = self._manhattan_distance(self.df_vec[row],row,self.df_vec,missing_rows,indexes)
+            self.df_vec[row][indexes[i]] = self.df_vec[closest_row_idx1][indexes[i]]
+            if np.isnan(self.df_vec[closest_row_idx1][indexes[i]]):
+                self.df_vec[row][indexes[i]] = self.df_vec[cri2][indexes[i]]
+            if np.isnan(self.df_vec[cri2][indexes[i]]):
+                self.df_vec[row][indexes[i]] = 1.0
 
         x = list(self.df)
         self.df = pd.DataFrame(self.df_vec,columns=x)
